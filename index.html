@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Empréstimo · LabMaker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="crt-grid-on">
+  <!-- Barra Superior (visível quando logado, ou modo compacto no login) -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2L15 5H19V9L22 12L19 15V19H15L12 22L9 19H5V15L2 12L5 9V5H9L12 2Z" />
+            <circle cx="12" cy="12" r="3.5" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">LBMK · EMPRÉSTIMOS</span>
+          <span class="brand-sub">CONTROLE DE SAÍDA &amp; DEVOLUÇÃO</span>
+        </div>
+      </div>
+
+      <!-- Navegação principal (3 opções) -->
+      <nav id="main-nav" class="nav-pill-group hidden" aria-label="Opções do sistema">
+        <button type="button" class="nav-pill active" data-view="assinar">
+          <span class="nav-icon" aria-hidden="true">📦</span>
+          <span>NOVO EMPRÉSTIMO</span>
+        </button>
+        <button type="button" class="nav-pill" data-view="pendentes">
+          <span class="nav-icon" aria-hidden="true">📋</span>
+          <span>PENDENTES</span>
+          <span id="badge-pendentes" class="nav-badge">0</span>
+        </button>
+        <button type="button" class="nav-pill" data-view="baixa">
+          <span class="nav-icon" aria-hidden="true">✅</span>
+          <span>DAR BAIXA</span>
+        </button>
+      </nav>
+
+      <!-- Status e ações do usuário -->
+      <div class="topbar-actions">
+        <button type="button" id="btn-db-modal" class="btn-utility" title="Visualizar e exportar banco de dados">
+          <span>DB SAÍDA</span>
+        </button>
+        <button type="button" id="btn-sfx-toggle" class="btn-utility" aria-pressed="true">
+          SFX: ON
+        </button>
+        <div id="user-pill" class="user-pill hidden">
+          <span class="status-dot"></span>
+          <span id="user-pill-name">ALUNO</span>
+        </div>
+        <button type="button" id="btn-logout" class="btn-amber-sm hidden">
+          SAIR
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ==================== TELA DE LOGIN ==================== -->
+    <section id="view-login" class="view active" aria-labelledby="login-heading">
+      <div class="login-grid">
+        <div class="login-hero">
+          <div class="eyebrow-pill">
+            <span class="sparkle">✦</span> PLATAFORMA DE CONTROLE DE MATERIAIS
+          </div>
+          <h1 id="login-heading" class="hero-title">
+            SISTEMA DE<br />EMPRÉSTIMO<span class="cursor-bar">_</span>
+          </h1>
+          <p class="hero-desc">
+            Registre a retirada de equipamentos e componentes do laboratório, acompanhe devoluções pendentes em tempo real e realize a baixa automática no banco de dados de saída.
+          </p>
+
+          <div class="feature-mini-grid">
+            <div class="mini-card">
+              <div class="mini-icon amber">01</div>
+              <div>
+                <strong>ASSINATURA DIGITAL</strong>
+                <span>Termo assinado na tela no ato da retirada</span>
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-icon cyan">02</div>
+              <div>
+                <strong>PAINEL DE PENDÊNCIAS</strong>
+                <span>Visão geral de todos os alunos com itens</span>
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-icon green">03</div>
+              <div>
+                <strong>BAIXA RÁPIDA</strong>
+                <span>Devolução registrada com data e hora</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card login-panel">
+          <div class="panel-header">
+            <span class="panel-badge green">IDENTIFICAÇÃO</span>
+            <h2>ENTRAR NO TERMINAL</h2>
+            <p>Informe sua matrícula e nome completo para acessar e salvar no banco de dados.</p>
+          </div>
+
+          <form id="login-form" class="form-stack" autocomplete="off">
+            <div class="field">
+              <label for="login-matricula">MATRÍCULA</label>
+              <input
+                type="text"
+                id="login-matricula"
+                name="matricula"
+                placeholder="Ex: 20252BSI0372"
+                required
+                maxlength="30"
+              />
+            </div>
+
+            <div class="field">
+              <label for="login-nome">NOME COMPLETO</label>
+              <input
+                type="text"
+                id="login-nome"
+                name="nome"
+                placeholder="Ex: Maria Clara Silva"
+                required
+                maxlength="80"
+              />
+            </div>
+
+            <div id="login-feedback" class="form-feedback hidden" role="alert"></div>
+
+            <button type="submit" class="btn-amber-lg">
+              <span>ACESSAR SISTEMA</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+          </form>
+
+          <div class="panel-footer-note">
+            <span class="mono-tag">INDEXEDDB ACTIVE</span>
+            <span>Sessão com desconexão automática após empréstimo (30s)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== OPÇÃO 1: ASSINAR EMPRÉSTIMO ==================== -->
+    <section id="view-assinar" class="view" aria-labelledby="assinar-heading">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow-pill">OPÇÃO 01 · RETIRADA DE MATERIAL</span>
+          <h2 id="assinar-heading" class="section-title">NOVO EMPRÉSTIMO</h2>
+        </div>
+        <div class="student-context-box">
+          <span class="context-label">RETIRANDO COMO:</span>
+          <strong id="ctx-student-info">—</strong>
+        </div>
+      </div>
+
+      <div class="two-col-layout">
+        <!-- Formulário de Material -->
+        <form id="loan-form" class="panel-card form-stack">
+          <div class="panel-header-inline">
+            <h3>DADOS DO MATERIAL</h3>
+            <span class="mono-tag">SAÍDA</span>
+          </div>
+
+          <div class="field">
+            <label>ATALHOS DE MATERIAIS COMUNS</label>
+            <div class="quick-chips" id="quick-materials">
+              <button type="button" class="chip-btn" data-item="Notebook">Notebook</button>
+              <button type="button" class="chip-btn" data-item="Mouse">Mouse</button>
+              <button type="button" class="chip-btn" data-item="Carregador de Notebook">Carregador de Notebook</button>
+              <button type="button" class="chip-btn" data-item="Kit Arduino Uno + Cabo">Arduino Uno</button>
+              <button type="button" class="chip-btn" data-item="ESP32 DevKit">ESP32</button>
+              <button type="button" class="chip-btn" data-item="Multímetro Digital">Multímetro</button>
+              <button type="button" class="chip-btn" data-item="Ferro de Solda">Ferro de Solda</button>
+              <button type="button" class="chip-btn" data-item="Paquímetro Digital">Paquímetro</button>
+              <button type="button" class="chip-btn" data-item="Protoboard 830 pontos">Protoboard</button>
+              <button type="button" class="chip-btn" data-item="Óculos de Proteção">Óculos EPI</button>
+              <button type="button" class="chip-btn" data-item="Kit Jumpers e Sensores">Kit Sensores</button>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field grow">
+              <label for="loan-material">MATERIAL / EQUIPAMENTO *</label>
+              <input
+                type="text"
+                id="loan-material"
+                placeholder="Digite ou selecione acima o material"
+                required
+                maxlength="100"
+              />
+            </div>
+            <div class="field qty">
+              <label for="loan-qty">QTD *</label>
+              <input
+                type="number"
+                id="loan-qty"
+                min="1"
+                max="99"
+                value="1"
+                required
+              />
+            </div>
+          </div>
+
+          <div id="loan-feedback" class="form-feedback hidden" role="alert"></div>
+
+          <button type="submit" class="btn-amber-lg">
+            <span>CONFIRMAR E FINALIZAR EMPRÉSTIMO</span>
+            <span aria-hidden="true">✓</span>
+          </button>
+        </form>
+
+        <!-- Painel lateral informativo -->
+        <aside class="panel-card info-aside">
+          <div class="panel-header-inline">
+            <h3>TERMO DE SAÍDA</h3>
+            <span class="panel-badge amber">OBRIGATÓRIO</span>
+          </div>
+          <ul class="term-list">
+            <li>O material retirado fica vinculado à sua matrícula no banco de dados de saída.</li>
+            <li>Ao concluir o uso, acesse a aba <strong>DAR BAIXA</strong> com sua matrícula para registrar a devolução.</li>
+            <li>Todos os empréstimos em aberto ficam visíveis na aba <strong>PENDENTES</strong>.</li>
+            <li>Após finalizar o empréstimo, você poderá iniciar outro ou sair automaticamente em 30s.</li>
+          </ul>
+
+          <div class="stats-mini-box">
+            <div class="stat-item">
+              <span class="stat-label">SEUS ITENS PENDENTES</span>
+              <strong id="my-pending-count" class="stat-value">0</strong>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">TOTAL PENDENTE NO LAB</span>
+              <strong id="all-pending-count" class="stat-value amber">0</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== OPÇÃO 2: DEVOLUÇÕES PENDENTES ==================== -->
+    <section id="view-pendentes" class="view" aria-labelledby="pendentes-heading">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow-pill">OPÇÃO 02 · MONITORAMENTO GERAL</span>
+          <h2 id="pendentes-heading" class="section-title">ALUNOS COM DEVOLUÇÃO PENDENTE</h2>
+        </div>
+        <div class="search-box">
+          <input
+            type="search"
+            id="search-pendentes"
+            placeholder="Buscar por aluno, matrícula ou material..."
+            aria-label="Buscar devoluções pendentes"
+          />
+        </div>
+      </div>
+
+      <div id="pendentes-list" class="cards-grid"></div>
+      <div id="pendentes-empty" class="empty-state hidden">
+        <div class="empty-icon">🎉</div>
+        <h3>NENHUMA DEVOLUÇÃO PENDENTE</h3>
+        <p>Todos os materiais registrados no banco de dados de saída já foram devolvidos.</p>
+      </div>
+    </section>
+
+    <!-- ==================== OPÇÃO 3: DAR BAIXA NO SISTEMA ==================== -->
+    <section id="view-baixa" class="view" aria-labelledby="baixa-heading">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow-pill">OPÇÃO 03 · REGISTRO DE DEVOLUÇÃO</span>
+          <h2 id="baixa-heading" class="section-title">DAR BAIXA NO SISTEMA</h2>
+        </div>
+        <div class="student-context-box">
+          <span class="context-label">BAIXA RESTRITA À MATRÍCULA:</span>
+          <strong id="baixa-student-matricula">—</strong>
+        </div>
+      </div>
+
+      <div id="baixa-list" class="cards-grid"></div>
+      <div id="baixa-empty" class="empty-state hidden">
+        <div class="empty-icon">📦</div>
+        <h3>SEM EMPRÉSTIMOS PARA DAR BAIXA</h3>
+        <p id="baixa-empty-msg">Você não possui devoluções pendentes no momento.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL PÓS-EMPRÉSTIMO (TIMER 30s) ==================== -->
+  <div id="post-loan-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="post-loan-title">
+    <div class="modal-card">
+      <div class="modal-badge-row">
+        <span class="panel-badge green">EMPRÉSTIMO REGISTRADO</span>
+        <span id="countdown-pill" class="countdown-pill">30s</span>
+      </div>
+
+      <h2 id="post-loan-title">DESEJA FAZER OUTRO EMPRÉSTIMO?</h2>
+      <p class="modal-desc">
+        Seu empréstimo foi registrado e salvo no banco de dados de saída. Se nenhuma ação for tomada em <strong id="countdown-text">30</strong> segundos, você será desconectado automaticamente.
+      </p>
+
+      <div id="post-loan-summary" class="summary-box"></div>
+
+      <div class="countdown-bar-track" aria-hidden="true">
+        <div id="countdown-bar-fill" class="countdown-bar-fill"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-another-loan" class="btn-amber-lg">
+          SIM, FAZER OUTRO EMPRÉSTIMO
+        </button>
+        <button type="button" id="btn-finish-logout" class="btn-outline-lg">
+          NÃO, SAIR PARA O LOGIN
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL BANCO DE DADOS DE SAÍDA ==================== -->
+  <div id="db-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="db-modal-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-badge-row">
+        <span class="panel-badge cyan">BANCO DE DADOS DE SAÍDA</span>
+        <button type="button" id="btn-close-db" class="btn-text-danger">FECHAR ✕</button>
+      </div>
+      <h2 id="db-modal-title">HISTÓRICO COMPLETO DE REGISTROS</h2>
+      <p class="modal-desc">
+        Visualize todos os empréstimos (pendentes e devolvidos) armazenados localmente no IndexedDB e exporte quando precisar.
+      </p>
+
+      <div class="db-actions-bar">
+        <button type="button" id="btn-export-csv" class="btn-amber-sm">EXPORTAR CSV</button>
+        <button type="button" id="btn-export-json" class="btn-outline-sm">EXPORTAR JSON</button>
+      </div>
+
+      <div class="db-table-wrap">
+        <table class="db-table">
+          <thead>
+            <tr>
+              <th>MATRÍCULA</th>
+              <th>ALUNO</th>
+              <th>MATERIAL</th>
+              <th>QTD</th>
+              <th>SAÍDA</th>
+              <th>STATUS</th>
+              <th>DEVOLUÇÃO</th>
+            </tr>
+          </thead>
+          <tbody id="db-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
